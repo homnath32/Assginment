@@ -28,6 +28,19 @@ public class UIAutomation {
             driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
             wait = new WebDriverWait(driver, Duration.ofSeconds(15));
             
+         // Step 1: Open ChatGPT and request code
+//            driver.get("https://chat.openai.com");
+//
+//            WebElement promptBox = driver.findElement(By.xpath("//div[@id='prompt-textarea']"));
+//            promptBox.sendKeys("Please provide a Python function that accepts parameters from the command line, performs addition on those parameters, and return the result.");
+//
+//            WebElement sendButton = driver.findElement(By.xpath("//button[@id='composer-submit-button']"));
+//            sendButton.click();
+//            Thread.sleep(10000); // wait for response
+//
+//            WebElement copyBtn = driver.findElement(By.xpath("(//button[@aria-label='Copy'])[1]"));
+//            copyBtn.click();
+            
             // Step 1: Get Python code
             String pythonCode = "def add_numbers():\n" +
                     "    \"\"\"\n" +
@@ -62,7 +75,7 @@ public class UIAutomation {
             e.printStackTrace();
             takeScreenshot(driver, "error_screenshot.png");
         } finally {
-            driver.quit();
+//            driver.quit();
         }
     }
     
@@ -83,19 +96,20 @@ public class UIAutomation {
     }
     
     private static void pasteCodeToEditor(WebDriver driver, WebDriverWait wait, String code) {
-        WebElement editor = wait.until(ExpectedConditions.elementToBeClickable(
-                By.xpath("//div[@class='ace_content']")));
-        
-        new Actions(driver)
-                .moveToElement(editor)
-                .click()
-                .keyDown(Keys.CONTROL)
-                .sendKeys("a")
-                .keyUp(Keys.CONTROL)
-                .sendKeys(Keys.DELETE)
-                .sendKeys(code)
-                .perform();
+        String pythonCode = "";
+        try {
+            pythonCode = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("scripts/generated_function.py")));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Paste Python code into editor
+        WebElement editor = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='ace_content']")));
+        new Actions(driver).moveToElement(editor).click()
+                .sendKeys(Keys.CONTROL + "a", Keys.DELETE)
+                .sendKeys(pythonCode).perform();
     }
+    
     
     private static void updateHtmlReport(WebDriver driver, WebDriverWait wait, String reportPath) throws Exception {
         Path reportFile = Paths.get(reportPath);
